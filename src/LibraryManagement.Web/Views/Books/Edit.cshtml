@@ -1,0 +1,109 @@
+@model Book
+@{ ViewData["Title"] = Model.Id == 0 ? "Add book" : "Manage book"; }
+<p class="eyebrow">COLLECTION MANAGEMENT</p>
+<h1>@ViewData["Title"]</h1>
+<p class="text-secondary mb-4">Book details, cover and inventory in one place.</p>
+
+<form method="post" asp-action="Edit" asp-route-id="@Model.Id" enctype="multipart/form-data" class="surface form-surface">
+    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="Revision" type="hidden" />
+
+    <div class="row g-4">
+        <div class="col-12">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="Author" class="form-label">Book author</label>
+            <input asp-for="Author" class="form-control" />
+            <span asp-validation-for="Author" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="ISBN" class="form-label">ISBN number</label>
+            <input asp-for="ISBN" class="form-control" maxlength="25" data-val-length-max="25" data-val-length="Use an ISBN-13 with optional spaces or hyphens." data-val-regex-pattern="[ -]*(?:[0-9][ -]*){13}" aria-describedby="isbn-help" />
+            <div id="isbn-help" class="form-text">A valid ISBN-13. Spaces and hyphens are accepted.</div>
+            <span asp-validation-for="ISBN" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="CategoryId" class="form-label">Book category</label>
+            <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select">
+                <option value="">Select a category</option>
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="TotalCopies" class="form-label">Book quantity</label>
+            <input asp-for="TotalCopies" class="form-control" />
+            <span asp-validation-for="TotalCopies" class="text-danger"></span>
+        </div>
+
+        <div class="col-12">
+            <label asp-for="Publisher" class="form-label">Book publisher</label>
+            <input asp-for="Publisher" class="form-control" />
+            <span asp-validation-for="Publisher" class="text-danger"></span>
+        </div>
+
+        @if (Model.Id > 0)
+        {
+            <div class="col-md-6">
+                <label for="available-quantity" class="form-label">Available quantity</label>
+                <input id="available-quantity" class="form-control" value="@Model.AvailableCopies" readonly />
+                <div class="form-text">Calculated from quantity minus outstanding loans. Updates when books are issued or returned.</div>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="IsArchived" class="form-label">Book status</label>
+                <select asp-for="IsArchived" class="form-select">
+                    <option value="false">Active catalog</option>
+                    <option value="true">Archived / deleted</option>
+                </select>
+                <p class="form-text">All copies must be returned before archiving. Choose Active catalog to restore a deleted title.</p>
+            </div>
+        }
+
+        <div class="col-12">
+            <label for="coverImage" class="form-label">Book cover image</label>
+            <input id="coverImage" name="coverImage" type="file" accept="image/jpeg,image/png" class="form-control" aria-describedby="cover-help" />
+            <div id="cover-help" class="form-text">JPEG or PNG · maximum 2 MB · up to 4096 pixels per side and 12 megapixels. Images are resized and saved securely.</div>
+            @Html.ValidationMessage("coverImage", null, new { @class = "text-danger" })
+
+            <div class="cover-preview-wrap mt-3">
+                @if (Model.HasCover)
+                {
+                    <img class="book-cover-preview" src="@Url.Action("Cover", new { id = Model.Id, v = Model.Revision })" alt="Current cover of @Model.Title" width="135" height="180" />
+                }
+                <img id="cover-upload-preview" class="book-cover-preview" alt="Selected cover preview" hidden width="135" height="180" />
+            </div>
+
+            <p id="cover-preview-message" class="form-text" aria-live="polite"></p>
+
+            @if (Model.HasCover)
+            {
+                <label class="form-check mt-3">
+                    <input type="checkbox" id="removeCover" name="removeCover" value="true" checked="@(ViewBag.RemoveCover == true)" class="form-check-input" /> Remove current cover
+                </label>
+            }
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button class="btn btn-primary">Save book</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        @if (Model.Id > 0)
+        {
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">View book</a>
+        }
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/book-cover.js" asp-append-version="true"></script>
+}

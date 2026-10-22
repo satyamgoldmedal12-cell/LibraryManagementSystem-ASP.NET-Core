@@ -1,0 +1,5 @@
+@model LibraryManagement.Web.ViewModels.UserAccessViewModel
+@{ViewData["Title"]=Model.Enabled?"Activate user":"Deactivate user";}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>@ViewData["Title"]</h1><p class="text-secondary">Review the account before changing access.</p></div></div>
+<div class="surface form-surface"><dl class="issue-facts"><dt>User</dt><dd>@Model.User.FullName</dd><dt>Email</dt><dd>@Model.User.Email</dd><dt>Role</dt><dd>@Model.User.Role</dd><dt>New access</dt><dd>@(Model.Enabled?"Active; temporary lockout cleared":"Inactive; sign-in blocked")</dd></dl><p class="form-text">Existing sessions will be signed out. You cannot change your own access or remove the last active Admin.</p>
+<form method="post" asp-action="SetAccess"><input type="hidden" name="id" value="@Model.User.Id"/><input type="hidden" name="enabled" value="@(Model.Enabled?"true":"false")"/><button class="btn btn-primary">Confirm @(Model.Enabled?"activation":"deactivation")</button><a asp-action="Index" class="btn btn-outline-secondary">Cancel</a></form></div>

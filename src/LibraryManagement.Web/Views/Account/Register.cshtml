@@ -1,0 +1,35 @@
+@model RegisterModel
+@{ ViewData["Title"] = "Create your account"; }
+<div class="login-panel">
+    <p class="eyebrow">JOIN YOUR READING COMMUNITY</p>
+    <h1>Your next chapter starts here.</h1>
+    <p class="text-secondary mb-4">Create a member account to explore the collection and track your borrowing.</p>
+    <form method="post" asp-action="Register" class="surface form-surface">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+        <div class="mb-4">
+            <label asp-for="FullName" class="form-label"></label>
+            <input asp-for="FullName" class="form-control" autocomplete="name" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" autocomplete="email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" autocomplete="new-password" aria-describedby="password-guidance" />
+            <p id="password-guidance" class="form-text">Use 12–128 characters with uppercase, lowercase, a number, and a symbol.</p>
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="ConfirmPassword" class="form-label"></label>
+            <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+        </div>
+        <p class="form-text mb-4">Your member number is generated automatically with a one-year membership. Already have a library membership? Ask your administrator to link an account.</p>
+        <button class="btn btn-primary w-100">Create member account →</button>
+        <p class="text-center small mt-4 mb-0">Already registered? <a asp-action="Login">Sign in</a></p>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

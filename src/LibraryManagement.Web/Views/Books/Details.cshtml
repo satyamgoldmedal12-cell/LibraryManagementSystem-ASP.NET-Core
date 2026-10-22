@@ -1,0 +1,68 @@
+@model Book
+@{
+    ViewData["Title"] = Model.Title;
+    var staff = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Librarian);
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">BOOK DETAILS</p>
+        <h1 class="book-title">@Model.Title</h1>
+        <p class="text-secondary">by @Model.Author</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to catalog</a>
+</div>
+
+<div class="surface book-detail">
+    <div class="book-detail-cover">
+        @if (Model.HasCover)
+        {
+            <img class="book-cover-large" src="@Url.Action("Cover", new { id = Model.Id, v = Model.Revision })" alt="Cover of @Model.Title" width="300" height="400" />
+        }
+        else
+        {
+            <div class="book-monogram" aria-hidden="true">@(string.IsNullOrEmpty(Model.Title) ? "B" : Model.Title[..1].ToUpperInvariant())</div>
+            <p class="form-text">No cover image uploaded.</p>
+        }
+    </div>
+
+    <div>
+        <span class="badge @(Model.IsArchived ? "text-bg-secondary" : Model.AvailableCopies > 0 ? "text-bg-success" : "text-bg-warning")">@Model.Status</span>
+
+        <dl class="book-facts mt-4">
+            <dt>Author</dt>
+            <dd>@Model.Author</dd>
+            <dt>Publisher</dt>
+            <dd>@(string.IsNullOrWhiteSpace(Model.Publisher) ? "Not specified" : Model.Publisher)</dd>
+            <dt>Category</dt>
+            <dd>@Model.CategoryName</dd>
+            <dt>ISBN number</dt>
+            <dd>@Model.ISBN</dd>
+            <dt>Book quantity</dt>
+            <dd>@Model.TotalCopies</dd>
+            <dt>Available quantity</dt>
+            <dd>@Model.AvailableCopies</dd>
+            <dt>Issued quantity</dt>
+            <dd>@(Model.TotalCopies - Model.AvailableCopies)</dd>
+            <dt>Catalog status</dt>
+            <dd>@(Model.IsArchived ? "Archived / deleted" : "Active catalog")</dd>
+        </dl>
+
+        @if (Model.IsArchived)
+        {
+            <p class="text-secondary">This title is hidden from the active catalog. Its borrowing history and cover have been preserved.</p>
+        }
+
+        @if (staff)
+        {
+            <div class="d-flex flex-wrap gap-2">
+                @if (!Model.IsArchived && Model.AvailableCopies > 0) { <a asp-controller="Loans" asp-action="Issue" asp-route-bookId="@Model.Id" class="btn btn-outline-primary">Issue this book</a> }
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">@(Model.IsArchived ? "Manage / restore" : "Edit book")</a>
+                @if (!Model.IsArchived)
+                {
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete book</a>
+                }
+            </div>
+        }
+    </div>
+</div>

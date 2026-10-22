@@ -1,0 +1,11 @@
+flowchart TD
+    B["Browser / User"] -->|HTTPS request| W["LibraryManagement.Web<br/>Controllers · Razor Views · ViewModels<br/>Authentication · Roles · CSRF · Middleware"]
+    W -->|Application interface| A["LibraryManagement.Application<br/>Services · DTOs · Validators · Interfaces"]
+    A -->|Business rules| D["LibraryManagement.Domain<br/>Entities · Enums · Rules"]
+    A -->|Runtime call through repository interface| I["LibraryManagement.Infrastructure<br/>Dapper Repositories · SqlConnectionFactory<br/>Identity · Logging · Other adapters"]
+    I -->|Parameterized stored procedure| SQL[("SQL Server<br/>Normalized tables · Keys · Indexes<br/>Audit fields · Transactions")]
+    classDef web fill:#e8f1ff,stroke:#3569a5,color:#14345a;
+    classDef app fill:#e8f6ee,stroke:#35855b,color:#17462d;
+    classDef domain fill:#fff4db,stroke:#af8124,color:#65480c;
+    classDef infra fill:#f0eaff,stroke:#7b59ad,color:#402667;
+    class W web; class A app; class D domain; class I infra;

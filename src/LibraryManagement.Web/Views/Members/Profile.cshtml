@@ -1,0 +1,114 @@
+@model MemberProfile
+@{
+    var member = Model.Member;
+    var staff = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Librarian);
+    ViewData["Title"] = staff ? "Member profile" : "My profile";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">MEMBER PROFILE</p>
+        <h1 class="member-name">@member.FullName</h1>
+        <p class="text-secondary">@member.MemberNumber · Record #@member.Id</p>
+    </div>
+    @if (staff)
+    {
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to members</a>
+    }
+</div>
+
+<div class="surface p-4 mb-4">
+    <span class="status-pill @(member.Status == "Active" ? "status-good" : "status-warning")">@member.Status</span>
+
+    <dl class="member-facts mt-3">
+        <dt>Member ID</dt><dd>@member.MemberNumber</dd>
+        <dt>Email</dt><dd>@member.Email</dd>
+        <dt>Mobile number</dt><dd>@(string.IsNullOrWhiteSpace(member.Phone) ? "Not provided" : member.Phone)</dd>
+        <dt>Address</dt><dd class="member-address">@(string.IsNullOrWhiteSpace(member.Address) ? "Not provided" : member.Address)</dd>
+        <dt>Membership date</dt><dd>@(member.JoinedOn?.ToString("dd MMM yyyy") ?? "Not recorded (legacy membership)")</dd>
+        <dt>Membership expiry date</dt><dd>@member.ExpiresOn.ToString("dd MMM yyyy")</dd>
+    </dl>
+
+    @if (staff)
+    {
+        <div class="d-flex flex-wrap gap-2">
+            @if (member.Status == "Active") { <a asp-controller="Loans" asp-action="Issue" asp-route-memberId="@member.Id" class="btn btn-outline-primary">Issue to this member</a> }
+            @if (member.IsArchived)
+            {
+                <form method="post" asp-action="Restore" asp-route-id="@member.Id">
+                    <input name="revision" type="hidden" value="@member.Revision" />
+                    <button class="btn btn-primary">Restore member</button>
+                </form>
+            }
+            else
+            {
+                <a asp-action="Edit" asp-route-id="@member.Id" class="btn btn-primary">Edit / renew membership</a>
+                <a asp-action="Delete" asp-route-id="@member.Id" class="btn btn-outline-danger">Delete member</a>
+            }
+        </div>
+    }
+</div>
+
+<div class="row g-3 mb-4" aria-label="Borrowing summary">
+    @foreach (var metric in new[] { ("Outstanding books", Model.Statistics.ActiveLoans.ToString()), ("Returned books", Model.Statistics.ReturnedLoans.ToString()), ("Overdue books", Model.Statistics.OverdueLoans.ToString()), ("Unpaid fines", "₹" + Model.Statistics.UnpaidFines.ToString("N2")), ("Fine payments", "₹" + Model.Statistics.PaidFines.ToString("N2")) })
+    {
+        <div class="col-sm-6 col-lg">
+            <div class="card p-3 h-100">
+                <div class="small text-secondary">@metric.Item1</div>
+                <strong class="fs-4">@metric.Item2</strong>
+            </div>
+        </div>
+    }
+</div>
+
+<h2 class="h4">Borrowing history</h2>
+<p class="text-secondary small">Finalized unpaid fines and recorded payments are shown above. Fines on outstanding loans continue to accrue.</p>
+
+<div class="surface table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Issued</th>
+                <th>Due</th>
+                <th>Returned</th>
+                <th>Fine (₹)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var loan in Model.History.Items)
+            {
+                <tr>
+                    <td>@loan.Title<div class="text-secondary small">Loan #@loan.Id</div></td>
+                    <td>@loan.IssuedAt.ToString("dd MMM yyyy")</td>
+                    <td>@loan.DueDate.ToString("dd MMM yyyy")</td>
+                    <td>@(loan.ReturnedAt?.ToString("dd MMM yyyy") ?? "—")</td>
+                    <td>@loan.FineAmount.ToString("N2")<div class="small text-secondary">@(loan.IsPaid ? "Paid" : loan.ReturnedAt is null ? "Accruing" : loan.FineAmount > 0 ? "Unpaid" : "No fine")</div></td>
+                    <td>@(loan.ReturnedAt.HasValue ? "Returned" : loan.IsOverdue ? "Overdue" : "On loan")</td>
+                </tr>
+            }
+
+            @if (Model.History.Items.Count == 0)
+            {
+                <tr>
+                    <td colspan="6" class="empty-state">No borrowing history yet.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<nav class="pager" aria-label="Member history pagination">
+    <span>Page @Model.History.Page of @Model.History.TotalPages</span>
+    <div class="d-flex gap-2">
+        @if (Model.History.Page > 1)
+        {
+            <a asp-action="Profile" asp-route-id="@member.Id" asp-route-page="@(Model.History.Page - 1)" class="btn btn-outline-secondary">Previous</a>
+        }
+        @if (Model.History.Page < Model.History.TotalPages)
+        {
+            <a asp-action="Profile" asp-route-id="@member.Id" asp-route-page="@(Model.History.Page + 1)" class="btn btn-outline-secondary">Next</a>
+        }
+    </div>
+</nav>

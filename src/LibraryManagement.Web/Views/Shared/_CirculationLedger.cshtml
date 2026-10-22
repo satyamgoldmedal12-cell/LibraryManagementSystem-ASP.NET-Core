@@ -1,0 +1,34 @@
+@model LibraryManagement.Web.ViewModels.CirculationLedgerViewModel
+@{var rows=Model.Page.Records;var totals=Model.Page.Totals;var kind=Model.Kind;var f=Model.Filter;var route=new Dictionary<string,string>{{"Search",f.Search??""},{"FromDate",f.FromDate?.ToString("yyyy-MM-dd")??""},{"ToDate",f.ToDate?.ToString("yyyy-MM-dd")??""},{"MemberId",f.MemberId?.ToString()??""},{"BookId",f.BookId?.ToString()??""},{"Status",f.Status}};}
+<partial name="_CirculationFilters" model="Model"/>
+@if(kind=="fines"){
+    <div class="row g-3 mb-4" aria-label="Filtered fine totals">
+        @foreach(var metric in new[]{("Pending fine",totals.PendingFine,"Finalized · awaiting payment"),("Accruing overdue fine",totals.AccruingFine,"Books still on loan · estimate"),("Paid fine",totals.PaidFine,"Recorded payments")}){
+            <div class="col-md-4"><div class="card p-3 h-100"><span class="text-secondary">@metric.Item1</span><strong class="fs-3">₹@metric.Item2.ToString("N2")</strong><small class="text-secondary">@metric.Item3</small></div></div>
+        }
+    </div><p class="form-text">Totals reflect all matching records across pages and the selected status. Pending and paid fines are finalized; accruing fines change until return.</p>
+}
+@if(kind=="collections"){
+    <div class="card p-4 mb-4"><span class="text-secondary">Total fine collected · filtered payments</span><strong class="fs-2">₹@totals.PaidFine.ToString("N2")</strong><span>@totals.TotalRecords payments across all matching pages</span></div>
+}
+<p class="result-count">@rows.Total @(kind=="collections"?"payments":kind=="returns"?"returns":"fine records") · INR · UTC calendar dates</p>
+<div class="surface table-responsive"><table class="table align-middle circulation-table"><thead><tr>
+    <th>@(kind=="collections"?"Payment / issue":"Issue")</th><th>Book / member</th>
+    <th>@(kind=="collections"?"Payment date":kind=="returns"?"Return date":"Due date")</th>
+    <th>Late days</th><th>Rate (₹/day)</th><th>@(kind=="collections"?"Collected (₹)":"Fine (₹)")</th><th>Status / staff</th><th>Action</th>
+</tr></thead><tbody>
+@foreach(var r in rows.Items){
+    <tr><td>@if(kind=="collections"){<strong>#@r.PaymentId</strong><br/>}Issue #@r.Id</td>
+        <td class="circulation-title"><strong>@r.Title</strong><div class="small text-secondary">@r.MemberName · @r.MemberNumber</div></td>
+        <td>@(kind=="collections"?r.PaidAt?.ToString("dd MMM yyyy, HH:mm"):kind=="returns"?r.ReturnedAt?.ToString("dd MMM yyyy, HH:mm"):r.DueDate.ToString("dd MMM yyyy"))</td>
+        <td>@r.LateDays</td><td>@r.DailyFine.ToString("N2")</td><td class="fw-semibold">@((kind=="collections"?r.PaidAmount:r.FineAmount).ToString("N2"))</td>
+        <td><span class="status-pill @(r.PaymentId.HasValue||r.FineAmount==0?"status-good":"status-warning")">@r.FineStatus</span><div class="small text-secondary">@(kind=="collections"?r.ReceivedByName:kind=="returns"?r.ReturnedByName:"")</div></td>
+        <td>@if(kind=="returns"){<a asp-controller="Returns" asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">Return receipt</a>}else if(r.PaymentId.HasValue){<a asp-controller="Fines" asp-action="Receipt" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">Payment receipt</a>}else if(r.ReturnedAt.HasValue){<a asp-controller="Fines" asp-action="Pay" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">Record payment</a>}else{<a asp-controller="Returns" asp-action="Confirm" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">Return book</a>}</td>
+    </tr>
+}
+@if(rows.Items.Count==0){<tr><td colspan="8" class="empty-state">No records match these filters.</td></tr>}
+</tbody></table></div>
+<nav class="pager" aria-label="Ledger pagination"><span>Page @rows.Page of @rows.TotalPages</span><div class="d-flex gap-2">
+@if(rows.Page>1){<a asp-all-route-data="route" asp-route-page="@(rows.Page-1)" class="btn btn-outline-secondary">Previous</a>}
+@if(rows.Page<rows.TotalPages){<a asp-all-route-data="route" asp-route-page="@(rows.Page+1)" class="btn btn-outline-secondary">Next</a>}
+</div></nav>

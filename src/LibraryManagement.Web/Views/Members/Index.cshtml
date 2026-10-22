@@ -1,0 +1,86 @@
+@model PagedResult<Member>
+@{ ViewData["Title"] = "Members"; }
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">OUR READING COMMUNITY</p>
+        <h1>Members</h1>
+        <p class="text-secondary">Profiles, contact details and membership renewals.</p>
+    </div>
+    <a asp-action="Edit" class="btn btn-primary">+ Add member</a>
+</div>
+
+<form method="get" class="filter-bar member-filters" role="search">
+    <label for="search" class="visually-hidden">Search members</label>
+    <input id="search" name="search" class="form-control" value="@Model.Search" maxlength="200" placeholder="Search name, member ID, email, mobile, or address" />
+
+    <label for="status" class="visually-hidden">Member status</label>
+    <select id="status" name="status" class="form-select filter-select">
+        @foreach (var status in new[] { "all", "active", "inactive", "expired" })
+        {
+            <option value="@status" selected="@(Model.Status == status ? "selected" : null)">@System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(status)</option>
+        }
+    </select>
+
+    <label class="form-check text-nowrap">
+        <input name="includeArchived" type="checkbox" value="true" checked="@Model.IncludeArchived" class="form-check-input" /> Include deleted
+    </label>
+
+    <button class="btn btn-dark">Filter</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+</form>
+
+<p class="result-count">@Model.Total members</p>
+
+<div class="surface table-responsive">
+    <table class="table align-middle member-table">
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Contact</th>
+                <th>Membership</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var member in Model.Items)
+            {
+                <tr>
+                    <td>
+                        <a asp-action="Profile" asp-route-id="@member.Id"><strong>@member.FullName</strong></a>
+                        <div class="text-secondary small">@member.MemberNumber</div>
+                    </td>
+                    <td>
+                        @member.Email
+                        <div class="text-secondary small">@member.Phone</div>
+                    </td>
+                    <td>
+                        <div class="small text-secondary">Joined @(member.JoinedOn?.ToString("dd MMM yyyy") ?? "not recorded")</div>
+                        Expires @member.ExpiresOn.ToString("dd MMM yyyy")
+                    </td>
+                    <td><span class="status-pill @(member.Status == "Active" ? "status-good" : "status-warning")">@member.Status</span></td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a asp-action="Profile" asp-route-id="@member.Id">Profile</a>
+                            @if (!member.IsArchived)
+                            {
+                                <a asp-action="Edit" asp-route-id="@member.Id">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@member.Id" class="text-danger">Delete</a>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+
+            @if (Model.Items.Count == 0)
+            {
+                <tr>
+                    <td colspan="5" class="empty-state">No members match this view.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<partial name="_Pagination" model="Model" />

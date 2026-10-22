@@ -1,0 +1,8 @@
+@model CirculationRecord
+@{ViewData["Title"]="Fine payment receipt";}
+<div class="page-heading"><div><p class="eyebrow">PAYMENT #@Model.PaymentId</p><h1>Fine payment receipt</h1><p class="text-secondary">Recorded collection in INR.</p></div><a asp-action="Collection" class="btn btn-outline-secondary">Fine collection report</a></div>
+<div class="surface p-4"><div class="alert alert-success">Paid in full · ₹@Model.PaidAmount.ToString("N2")</div>
+<dl class="issue-facts"><dt>Payment ID</dt><dd>@Model.PaymentId</dd><dt>Payment date</dt><dd>@Model.PaidAt?.ToString("dd MMM yyyy, HH:mm:ss") UTC</dd><dt>Received by</dt><dd>@Model.ReceivedByName</dd></dl>
+<partial name="_CirculationFacts" model="Model"/>
+<a asp-controller="Returns" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Return receipt</a>
+</div>

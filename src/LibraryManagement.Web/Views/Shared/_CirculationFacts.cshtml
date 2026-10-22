@@ -1,0 +1,15 @@
+@model CirculationRecord
+<dl class="issue-facts">
+    <dt>Issue ID</dt><dd><a asp-controller="Loans" asp-action="Receipt" asp-route-id="@Model.Id">#@Model.Id</a></dd>
+    <dt>Book</dt><dd>@Model.Title <div class="small text-secondary">ISBN @Model.ISBN</div></dd>
+    <dt>Member</dt><dd>@Model.MemberName · @Model.MemberNumber</dd>
+    <dt>Issue date</dt><dd>@Model.IssuedAt.ToString("dd MMM yyyy, HH:mm:ss") UTC</dd>
+    <dt>Due date</dt><dd>@Model.DueDate.ToString("dd MMM yyyy")</dd>
+    <dt>Return date</dt><dd>@(Model.ReturnedAt?.ToString("dd MMM yyyy, HH:mm:ss") + (Model.ReturnedAt.HasValue ? " UTC" : "Not returned"))</dd>
+    @if(Model.ReturnedAt.HasValue){<dt>Returned to</dt><dd>@Model.ReturnedByName</dd>}
+    <dt>Late days</dt><dd>@Model.LateDays</dd>
+    <dt>Fine per day</dt><dd>₹@Model.DailyFine.ToString("N2") <span class="small text-secondary">Rate recorded at checkout</span></dd>
+    <dt>@(Model.ReturnedAt.HasValue ? "Final fine" : "Estimated fine")</dt><dd class="fs-4 fw-semibold">₹@Model.FineAmount.ToString("N2")</dd>
+    <dt>Fine status</dt><dd><span class="status-pill @(Model.PaymentId.HasValue || Model.FineAmount == 0 ? "status-good" : "status-warning")">@Model.FineStatus</span></dd>
+    <dt>Available quantity</dt><dd>@Model.AvailableCopies <span class="small text-secondary">Current book stock</span></dd>
+</dl>

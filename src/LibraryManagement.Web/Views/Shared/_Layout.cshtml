@@ -1,0 +1,83 @@
+@using LibraryManagement.Web.ViewModels
+
+@{
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var staff = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Librarian);
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] · Library Desk</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                @await Component.InvokeAsync("LibraryIdentity")
+            </a>
+            <p class="sidebar-label">YOUR LIBRARY, CONNECTED</p>
+
+            @if (signedIn)
+            {
+                @await Component.InvokeAsync("ModuleMenu")
+            }
+
+            <div class="sidebar-note">
+                <span class="little-line"></span>
+                <p>A place for every book.<br />A book for every reader.</p>
+                <small>LIBRARY MANAGEMENT</small>
+            </div>
+        </aside>
+
+        <div class="workspace">
+            <header class="topbar">
+                <span class="topbar-title">Library Desk <span class="text-secondary">/ @ViewData["Title"]</span></span>
+
+                @if (signedIn)
+                {
+                    <div class="account-menu">
+                        <a asp-controller="Account" asp-action="Sessions">@(User.FindFirst("full_name")?.Value ?? User.Identity!.Name)</a>
+                        <form asp-controller="Account" asp-action="Logout" method="post">
+                            <button class="btn btn-sm btn-outline-secondary">Sign out</button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <span class="text-secondary small">YOUR NEXT CHAPTER AWAITS</span>
+                }
+            </header>
+
+            <main id="main" class="main-content">
+                @if (TempData["Success"] is string success)
+                {
+                    <div class="alert alert-success" role="status">@success</div>
+                }
+
+                @if (TempData["Error"] is string error)
+                {
+                    <div class="alert alert-danger" role="alert">@error</div>
+                }
+
+                @RenderBody()
+            </main>
+
+            <footer class="app-footer">
+                Library Desk <span>Thoughtfully organized. Ready to explore.</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

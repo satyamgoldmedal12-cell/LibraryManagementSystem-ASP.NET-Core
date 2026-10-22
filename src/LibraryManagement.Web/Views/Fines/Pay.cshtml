@@ -1,0 +1,11 @@
+@model CirculationRecord
+@{ViewData["Title"]="Record fine payment";}
+<div class="page-heading"><div><p class="eyebrow">FINE MANAGEMENT</p><h1>Record fine payment</h1><p class="text-secondary">Confirm the full payment only after receiving it from the member.</p></div><a asp-action="Index" class="btn btn-outline-secondary">Fine ledger</a></div>
+<div class="surface p-4"><partial name="_CirculationFacts" model="Model"/>
+<form method="post" asp-action="Pay" asp-route-id="@Model.Id">
+<div asp-validation-summary="All" class="text-danger" role="alert"></div>
+<p class="form-text">The payment amount and timestamp are recorded by the server. Only finalized fines can be paid; each fine has one full payment.</p>
+@if(Model.ReturnedAt.HasValue && Model.FineAmount>0 && !Model.PaymentId.HasValue){<button class="btn btn-primary">Confirm ₹@Model.FineAmount.ToString("N2") received</button>}
+@if(Model.PaymentId.HasValue){<a asp-action="Receipt" asp-route-id="@Model.Id" class="btn btn-primary">View existing payment receipt</a>}
+<a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+</form></div>

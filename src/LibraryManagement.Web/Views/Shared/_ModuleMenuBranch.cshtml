@@ -1,0 +1,11 @@
+@model ModuleNavigationViewModel
+@{
+    var current=ViewContext.RouteData.Values["controller"]?.ToString();
+    var needed=Model.Pages.SelectMany(p=>Model.Modules.Where(m=>m.Id==p.Id).SelectMany(m=>ModuleHierarchy.Ancestors(m,Model.Modules).Select(a=>a.Id))).ToHashSet();
+}
+@foreach(var module in Model.Modules.Where(m=>m.ParentId==Model.ParentId).OrderBy(m=>m.SortOrder).ThenBy(m=>m.LabelId).ThenBy(m=>m.DisplayName))
+{
+    var entry=Model.Pages.SingleOrDefault(p=>p.Id==module.Id);
+    if(entry is not null){<a class="nav-item @(current==entry.ControllerName?"active":"")" asp-controller="@entry.ControllerName" asp-action="@entry.ActionName"><span aria-hidden="true">▤</span> @entry.DisplayName</a>}
+    else if(!module.IsLeafNode&&needed.Contains(module.Id)){<details class="module-menu-group" open><summary>@module.DisplayName</summary><div class="module-menu-children"><partial name="_ModuleMenuBranch" model="@(new ModuleNavigationViewModel(Model.Pages,Model.Modules,module.Id))"/></div></details>}
+}

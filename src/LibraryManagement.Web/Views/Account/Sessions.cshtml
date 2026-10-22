@@ -1,0 +1,52 @@
+@model SessionListModel
+@{ ViewData["Title"] = "Security & sessions"; }
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">ACCOUNT SECURITY</p>
+        <h1>Your signed-in sessions.</h1>
+        <p class="text-secondary">Review recent activity and sign out sessions you no longer use. Times are UTC.</p>
+    </div>
+    <a asp-action="ChangePassword" class="btn btn-outline-primary">Change password</a>
+</div>
+
+<div class="surface table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Session</th>
+                <th>Signed in (UTC)</th>
+                <th>Last active (UTC)</th>
+                <th>Ends by (UTC)</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var session in Model.Sessions)
+            {
+                <tr>
+                    <td>
+                        @if (session.Id == Model.CurrentSessionId)
+                        {
+                            <span class="status-pill status-good">This session</span>
+                        }
+                        <div class="small text-secondary mt-2">@session.Device</div>
+                    </td>
+                    <td>@session.IssuedAt.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@session.LastSeenAt.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@session.ExpiresAt.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>
+                        <form method="post" asp-action="RevokeSession" data-confirm="Sign out this session?">
+                            <input type="hidden" name="id" value="@session.Id" />
+                            <button class="btn btn-sm btn-outline-primary">Sign out</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<form method="post" asp-action="RevokeOtherSessions" class="mt-4" data-confirm="Sign out all other sessions while keeping this session active?">
+    <button class="btn btn-primary">Sign out other sessions</button>
+</form>
+<p class="form-text mt-3">A password reset, password change, or disabled account ends existing sessions. Session history contains your browser's reported device information.</p>

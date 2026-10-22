@@ -1,0 +1,4 @@
+@model LibraryManagement.Web.ViewModels.CirculationLedgerViewModel
+@{ViewData["Title"]="Fine management";}
+<div class="page-heading"><div><p class="eyebrow">FINE MANAGEMENT</p><h1>Fine ledger</h1><p class="text-secondary">Track overdue estimates, pending fines and paid fines.</p></div><div class="d-flex gap-2 flex-wrap"><a asp-action="Collection" class="btn btn-primary">Fine collection report</a>@if(User.IsInRole(Roles.Admin)){<a asp-controller="Settings" asp-action="Index" class="btn btn-outline-secondary">Library settings</a>}</div></div>
+<partial name="_CirculationLedger" model="Model"/>

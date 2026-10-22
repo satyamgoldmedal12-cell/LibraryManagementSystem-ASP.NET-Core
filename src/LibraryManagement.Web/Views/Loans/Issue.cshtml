@@ -1,0 +1,14 @@
+@model LibraryManagement.Web.ViewModels.IssueBookViewModel
+@{ViewData["Title"]="Issue a book";var a=Model.Assessment;ViewData["IssuePage"]=Model;}
+<div class="page-heading"><div><p class="eyebrow">BOOK ISSUE MANAGEMENT</p><h1>Issue a book</h1><p class="text-secondary">Select a book and member, check availability, then confirm checkout.</p></div><a asp-action="History" class="btn btn-outline-secondary">Issue history</a></div>
+<form method="post" asp-action="Issue" class="surface form-surface" id="issue-form" data-availability-url="@Url.Action("Availability")">
+<div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+<div class="mb-4"><label for="issue-date" class="form-label">Issue date (UTC)</label><input id="issue-date" type="date" value="@a.IssueDateUtc.ToString("yyyy-MM-dd")" readonly class="form-control"/><p class="form-text">The actual issue timestamp is recorded by SQL Server when checkout succeeds.</p></div>
+<partial name="_IssueFields" model="Model.Input"/>
+<div class="issue-checks my-4" id="issue-availability" aria-live="polite" aria-busy="false">
+<h2 class="h5">Availability and eligibility</h2><dl class="issue-facts"><dt>Book quantity</dt><dd id="issue-stock">@(a.Context.BookId.HasValue?$"{a.Context.AvailableCopies} / {a.Context.TotalCopies} copies available":"Select a book")</dd><dt>Member borrowing</dt><dd id="issue-member-count">@(a.Context.MemberId.HasValue?$"{a.Context.ActiveLoans} / {a.MaximumBooks} active issues":"Select a member")</dd><dt>Membership expires</dt><dd id="issue-member-expiry">@(a.Context.MemberExpiresOn?.ToString("yyyy-MM-dd")??"—")</dd></dl>
+<ul id="issue-problems" class="mb-2">@foreach(var problem in a.Problems){<li>@problem</li>}</ul><p id="issue-check-message" class="form-text mb-0">@(a.CanIssue?"Ready to issue. Availability is checked again on confirmation.":"Complete the selections to check this issue.")</p>
+</div><p class="form-text">Maximum @a.MaximumBooks active books per member. Late fine: ₹@a.DailyFine.ToString("N2") per day, recorded at checkout. Due date must be after today, within 90 days and within membership expiry.</p>
+<div class="form-actions"><button class="btn btn-primary" type="submit" id="confirm-issue">Confirm checkout</button><button type="button" id="refresh-availability" class="btn btn-outline-secondary">Check availability</button><a asp-action="Index" class="btn btn-outline-secondary">Cancel</a></div>
+</form>
+@section Scripts{<partial name="_ValidationScriptsPartial"/><script src="~/js/book-issue.js" asp-append-version="true"></script>}

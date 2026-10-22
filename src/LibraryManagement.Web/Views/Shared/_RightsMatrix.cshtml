@@ -1,0 +1,16 @@
+@model RightsMatrixViewModel
+@{var rights=new[]{ModuleRight.Add,ModuleRight.Edit,ModuleRight.Read,ModuleRight.Delete,ModuleRight.Import,ModuleRight.Export,ModuleRight.Approval1,ModuleRight.Approval2};var captions=new[]{"Can add","Can edit","Can read","Can delete","Can import","Can export","Approval 1","Approval 2"};}
+<div class="surface p-3 mb-2 d-flex gap-2 align-items-center"><label class="visually-hidden" for="page-tree-search">Search pages</label><input type="search" id="page-tree-search" class="form-control" placeholder="Search pages or parent groups"/><button class="btn btn-outline-secondary text-nowrap" type="button" data-tree-expand>Expand all</button><button class="btn btn-outline-secondary text-nowrap" type="button" data-tree-collapse>Collapse all</button></div>
+<div class="surface table-responsive rights-tree"><table class="table align-middle"><thead><tr><th>Page name</th>@foreach(var caption in captions){<th class="text-center">@caption</th>}</tr></thead><tbody>
+@foreach(var module in ModuleHierarchy.Ordered(Model.Modules))
+{
+    var i=Model.Grants.FindIndex(g=>g.ModuleId==module.Id);if(i<0){continue;}var grant=Model.Grants[i];var depth=ModuleHierarchy.Ancestors(module,Model.Modules).Count;var available=module.IsLeafNode&&ModuleHierarchy.Available(module,Model.Modules);var limit=available?module.Rights&ModuleRules.RoleLimit(module.ControllerName,Model.Role):ModuleRight.None;
+    <tr hidden="@module.DeletedDate.HasValue" data-deleted="@(module.DeletedDate.HasValue?"true":"false")" data-module-id="@module.Id" data-parent-id="@module.ParentId" data-module-search="@ModuleHierarchy.FullPath(module,Model.Modules)" class="@(!module.IsLeafNode?"module-group-row":"")"><td><div style="padding-left:@(Math.Min(depth,12)*16)px" class="rights-page-name">@if(!module.IsLeafNode){<button type="button" class="btn btn-sm tree-toggle" data-tree-toggle="@module.Id" aria-label="Toggle @module.DisplayName" aria-expanded="true">▾</button>}<strong>@module.DisplayName</strong><div class="small text-secondary">@(module.IsLeafNode?module.PagePath:"Parent group") @(!module.IsActive||module.DeletedDate.HasValue?" · unavailable":"")</div></div><input type="hidden" name="@(Model.Prefix+"["+i+"].ModuleId")" value="@grant.ModuleId"/><input type="hidden" name="@(Model.Prefix+"["+i+"].ModuleRevision")" value="@grant.ModuleRevision"/></td>
+    @for(var j=0;j<rights.Length;j++)
+    {
+        var property="Is"+rights[j];var name=Model.Prefix+"["+i+"]."+property;var enabled=!Model.ReadOnly&&limit.HasFlag(rights[j]);var selected=(Model.ReadOnly?limit.HasFlag(rights[j]):grant.Rights.HasFlag(rights[j]))&&limit.HasFlag(rights[j]);
+        <td class="text-center"><input type="checkbox" name="@name" value="true" checked="@selected" disabled="@(!enabled)" data-right="@rights[j]" class="form-check-input" aria-label="@($"{module.DisplayName}: {captions[j]}")"/><input type="hidden" name="@name" value="false"/></td>
+    }
+    </tr>
+}
+</tbody></table></div>

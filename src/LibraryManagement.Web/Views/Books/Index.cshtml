@@ -1,0 +1,97 @@
+@model PagedResult<Book>
+@{
+    ViewData["Title"] = "Book catalog";
+    var staff = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Librarian);
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">THE COLLECTION</p>
+        <h1>Book catalog</h1>
+        <p class="text-secondary">Find the next great read. Keep every copy accounted for.</p>
+    </div>
+
+    @if (staff)
+    {
+        <a class="btn btn-primary" asp-action="Edit">+ Add book</a>
+    }
+</div>
+
+<form method="get" class="filter-bar" role="search">
+    <label class="visually-hidden" for="search">Search books</label>
+    <input id="search" name="search" class="form-control" value="@Model.Search" placeholder="Search title, author, publisher, category, or ISBN" maxlength="200" />
+
+    @if (staff)
+    {
+        <label class="form-check text-nowrap">
+            <input type="checkbox" name="includeArchived" value="true" checked="@Model.IncludeArchived" class="form-check-input" /> Include archived
+        </label>
+    }
+
+    <button class="btn btn-dark">Search</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+</form>
+
+<p class="result-count">
+    @Model.Total book titles
+    @if (Model.IncludeArchived)
+    {
+        <span>· including deleted / archived titles</span>
+    }
+</p>
+
+@if (Model.Items.Count == 0)
+{
+    <div class="empty-state">
+        <h2>No books found</h2>
+        <p>@(staff ? "Add a book or try a different search." : "Try a different search.")</p>
+    </div>
+}
+
+<div class="row g-4">
+    @foreach (var book in Model.Items)
+    {
+        <div class="col-md-6 col-xl-4">
+            <article class="book-card">
+                <div class="book-topline">
+                    <span class="category-tag">@book.CategoryName</span>
+                    <span class="badge @(book.IsArchived ? "text-bg-secondary" : book.AvailableCopies > 0 ? "text-bg-success" : "text-bg-warning")">@book.Status</span>
+                </div>
+
+                <a asp-action="Details" asp-route-id="@book.Id" class="book-cover-link" aria-label="View @book.Title">
+                    @if (book.HasCover)
+                    {
+                        <img class="book-cover" src="@Url.Action("Cover", new { id = book.Id, v = book.Revision })" alt="Cover of @book.Title" loading="lazy" width="180" height="240" />
+                    }
+                    else
+                    {
+                        <div class="book-monogram" aria-hidden="true">@(string.IsNullOrEmpty(book.Title) ? "B" : book.Title[..1].ToUpperInvariant())</div>
+                    }
+                </a>
+
+                <h2><a asp-action="Details" asp-route-id="@book.Id">@book.Title</a></h2>
+                <p class="text-secondary mb-1">@book.Author</p>
+                <p class="small text-secondary mb-2">@(string.IsNullOrWhiteSpace(book.Publisher) ? "Publisher not specified" : book.Publisher)</p>
+                <div class="small text-secondary mb-3">ISBN @book.ISBN</div>
+
+                <div class="book-footer">
+                    <span><strong>@book.AvailableCopies</strong> / @book.TotalCopies copies available</span>
+                    <a asp-action="Details" asp-route-id="@book.Id">View →</a>
+                </div>
+
+                @if (staff)
+                {
+                    <div class="book-actions">
+                        <a asp-action="Edit" asp-route-id="@book.Id">@(book.IsArchived ? "Manage / restore" : "Edit")</a>
+                        @if (!book.IsArchived)
+                        {
+                            <a class="text-danger" asp-action="Delete" asp-route-id="@book.Id">Delete</a>
+                        }
+                    </div>
+                }
+            </article>
+        </div>
+    }
+</div>
+
+<partial name="_Pagination" model="Model" />

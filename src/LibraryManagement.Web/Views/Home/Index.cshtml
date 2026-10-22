@@ -1,0 +1,164 @@
+@using System.Globalization
+@using System.Text.Json
+@model Dashboard
+@{
+    ViewData["Title"] = "Overview";
+    var counts = CultureInfo.GetCultureInfo("en-IN");
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">LIBRARY OVERVIEW</p>
+        <h1>Your library, at a glance.</h1>
+        <p class="text-secondary">Collection, circulation, membership and fine payments.</p>
+    </div>
+    <div class="dashboard-refresh">
+        <span class="text-secondary small">Refreshed @Model.RefreshedAt.ToString("dd MMM yyyy, HH:mm") UTC</span>
+        <a asp-action="Index" class="btn btn-outline-secondary">Refresh overview</a>
+    </div>
+</div>
+
+<div class="row g-3 dashboard-metrics" aria-label="Library summary">
+    <div class="col-sm-6 col-xl-3">
+        <section class="card dashboard-stat h-100" aria-labelledby="total-books-label">
+            <div class="card-body">
+                <p id="total-books-label" class="stat-label">Total Books <span aria-hidden="true">▤</span></p>
+                <strong data-metric="total-books">@Model.TotalBooks.ToString("N0", counts)</strong>
+                <p class="text-secondary small mb-0">@Model.BookTitles.ToString("N0", counts) active titles · physical copies</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <section class="card dashboard-stat h-100" aria-labelledby="available-books-label">
+            <div class="card-body">
+                <p id="available-books-label" class="stat-label">Available Books <span aria-hidden="true">✓</span></p>
+                <strong data-metric="available-books">@Model.AvailableBooks.ToString("N0", counts)</strong>
+                <p class="text-secondary small mb-0">Copies ready to borrow</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <section class="card dashboard-stat h-100" aria-labelledby="issued-books-label">
+            <div class="card-body">
+                <p id="issued-books-label" class="stat-label">Issued Books <span aria-hidden="true">⇄</span></p>
+                <strong data-metric="issued-books">@Model.IssuedBooks.ToString("N0", counts)</strong>
+                <p class="text-secondary small mb-0">Outstanding loans, including overdue</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <section class="card dashboard-stat h-100" aria-labelledby="returned-books-label">
+            <div class="card-body">
+                <p id="returned-books-label" class="stat-label">Returned Books <span aria-hidden="true">↩</span></p>
+                <strong data-metric="returned-books">@Model.ReturnedBooks.ToString("N0", counts)</strong>
+                <p class="text-secondary small mb-0">Completed return transactions · all time</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <section class="card dashboard-stat dashboard-stat-warning h-100" aria-labelledby="overdue-books-label">
+            <div class="card-body">
+                <p id="overdue-books-label" class="stat-label">Overdue Books <span aria-hidden="true">◷</span></p>
+                <strong data-metric="overdue-books">@Model.OverdueBooks.ToString("N0", counts)</strong>
+                <p class="text-secondary small mb-0">Outstanding loans past their due date</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <section class="card dashboard-stat h-100" aria-labelledby="total-members-label">
+            <div class="card-body">
+                <p id="total-members-label" class="stat-label">Total Members <span aria-hidden="true">♧</span></p>
+                <strong data-metric="total-members">@Model.TotalMembers.ToString("N0", counts)</strong>
+                <p class="text-secondary small mb-0">Includes inactive and expired memberships</p>
+            </div>
+        </section>
+    </div>
+    <div class="col-xl-6">
+        <section class="card dashboard-stat dashboard-stat-finance h-100" aria-labelledby="fine-collected-label">
+            <div class="card-body">
+                <p id="fine-collected-label" class="stat-label">Total Fine Collected <span aria-hidden="true">₹</span></p>
+                <strong data-metric="fine-collected">₹@Model.TotalFineCollected.ToString("N2", counts)</strong>
+                <p class="small mb-0">Recorded fine payments · INR · all time</p>
+            </div>
+        </section>
+    </div>
+</div>
+
+<input type="hidden" id="dashboard-data" value="@JsonSerializer.Serialize(new { Model.TotalBooks, Model.AvailableBooks, Model.IssuedBooks, Model.OverdueBooks, Model.MonthlyActivity })" />
+<div class="alert alert-warning mt-4" id="dashboard-chart-error" role="status" hidden>Charts could not load. Exact values are available under “View chart data and definitions” below.</div>
+<div class="row g-4 mt-1">
+    <div class="col-lg-5">
+        <section class="card dashboard-chart-card h-100" aria-labelledby="stock-chart-heading">
+            <div class="card-body">
+                <h2 id="stock-chart-heading" class="h5">Current book availability</h2>
+                <p class="text-secondary small">Physical copies in active titles. Overdue loans are shown separately.</p>
+                @if (Model.TotalBooks > 0)
+                {
+                    <div class="dashboard-chart dashboard-stock-chart"><canvas id="availability-chart" role="img" aria-label="Available: @Model.AvailableBooks copies. On loan and not overdue: @(Model.IssuedBooks - Model.OverdueBooks) copies. Overdue: @Model.OverdueBooks copies."></canvas></div>
+                }
+                else
+                {
+                    <div class="dashboard-chart-empty"><span class="h2" aria-hidden="true">▤</span><p class="mb-1">No books in the active collection yet.</p><a asp-controller="Books" asp-action="Edit">Add your first book →</a></div>
+                }
+                <ul class="dashboard-legend list-unstyled mb-0">
+                    <li><span><i class="chart-key key-available" aria-hidden="true"></i>Available</span><strong>@Model.AvailableBooks.ToString("N0", counts)</strong></li>
+                    <li><span><i class="chart-key key-issued" aria-hidden="true"></i>On loan · not overdue</span><strong>@((Model.IssuedBooks - Model.OverdueBooks).ToString("N0", counts))</strong></li>
+                    <li><span><i class="chart-key key-overdue" aria-hidden="true"></i>Overdue</span><strong>@Model.OverdueBooks.ToString("N0", counts)</strong></li>
+                </ul>
+            </div>
+        </section>
+    </div>
+    <div class="col-lg-7">
+        <section class="card dashboard-chart-card h-100" aria-labelledby="activity-chart-heading">
+            <div class="card-body">
+                <h2 id="activity-chart-heading" class="h5">Monthly issues and returns</h2>
+                <p class="text-secondary small">Last six calendar months · UTC · current month to date · includes archived titles</p>
+                <div class="dashboard-chart dashboard-activity-chart"><canvas id="activity-chart" role="img" aria-label="Issued and returned loan transactions by month. Exact values are in the chart data table below."></canvas></div>
+                @if (Model.MonthlyActivity.All(x => x.IssuedBooks == 0 && x.ReturnedBooks == 0))
+                {
+                    <p class="text-secondary small text-center mt-3 mb-0">No issues or returns in this period yet.</p>
+                }
+            </div>
+        </section>
+    </div>
+</div>
+
+<details class="surface dashboard-source mt-4">
+    <summary>View chart data and definitions</summary>
+    <div class="p-4 pt-0">
+        <p class="small text-secondary">Total and available books exclude archived titles. Available = total copies − outstanding loans. Overdue means an unreturned loan with a due date before today in UTC. Returned Books counts completed returns, so the same copy can contribute more than once over time. Total members includes all memberships. Fine collected includes payments only.</p>
+        <div class="table-responsive">
+            <table class="table">
+                <caption>Monthly circulation, grouped by issue date and actual return date respectively. Months without activity are zero.</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Month</th>
+                        <th scope="col">Issued transactions</th>
+                        <th scope="col">Returned transactions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var month in Model.MonthlyActivity)
+                    {
+                        <tr>
+                            <th scope="row">@month.Label</th>
+                            <td>@month.IssuedBooks.ToString("N0", counts)</td>
+                            <td>@month.ReturnedBooks.ToString("N0", counts)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</details>
+
+<div class="dashboard-actions mt-4">
+    <a asp-controller="Loans" asp-action="Issue" class="btn btn-primary">Issue a book</a>
+    <a asp-controller="Loans" asp-action="Index" asp-route-status="overdue" class="btn btn-outline-primary">Review overdue books</a>
+    <a asp-controller="Members" asp-action="Edit" class="btn btn-outline-secondary">Add a member</a>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/chart.umd.min.js" asp-append-version="true"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+}

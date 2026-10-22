@@ -1,0 +1,97 @@
+@model ModulePathListViewModel
+@{ ViewData["Title"] = "Module path"; }
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">PAGE RIGHTS MANAGEMENT</p>
+        <h1>Module path</h1>
+        <p class="text-secondary">Manage parent groups, page paths, sequence and available operations.</p>
+    </div>
+    <a asp-controller="PageInRole" asp-action="Index" class="btn btn-outline-primary">Page in role</a>
+</div>
+
+<nav class="nav nav-tabs mb-4" aria-label="Module path pages">
+    <a class="nav-link" asp-action="Edit">Add</a>
+    <a class="nav-link active" asp-action="Index" aria-current="page">List</a>
+</nav>
+
+<form method="get" class="filter-bar">
+    <label for="module-search" class="visually-hidden">Search module paths</label>
+    <input id="module-search" name="search" value="@Model.Search" class="form-control" placeholder="Search page name, parent path or controller" maxlength="200" />
+    <button class="btn btn-dark">Search</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Reset list</a>
+</form>
+
+<div class="surface table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Page name / full path</th>
+                <th>Controller / path</th>
+                <th>Leaf</th>
+                <th>Label</th>
+                <th>Sequence</th>
+                <th>Status</th>
+                <th>Operations</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var m in Model.Rows)
+            {
+                <tr class="@(!m.IsLeafNode ? "module-group-row" : "")">
+                    <td>
+                        <strong>@m.DisplayName</strong>
+                        <div class="small text-secondary">@ModuleHierarchy.FullPath(m, Model.Catalog)</div>
+                    </td>
+                    <td>
+                        <span>@(m.IsLeafNode ? m.ControllerName : "Group")</span>
+                        <div class="small text-secondary">@m.PagePath</div>
+                    </td>
+                    <td>@(m.IsLeafNode ? "Yes" : "No")</td>
+                    <td>@m.LabelId</td>
+                    <td>@m.SortOrder</td>
+                    <td>
+                        <span class="badge @(m.DeletedDate.HasValue || !m.IsActive ? "text-bg-secondary" : "text-bg-success")">
+                            @(m.DeletedDate.HasValue ? "Deleted" : m.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </td>
+                    <td class="small">@(m.IsLeafNode ? m.Rights.ToString() : "—")</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Edit" asp-route-id="@m.Id" class="btn btn-sm btn-outline-primary">@(m.DeletedDate.HasValue ? "Restore / edit" : "Edit")</a>
+                            @if (!ModuleRules.IsManagement(m.ControllerName) && !m.DeletedDate.HasValue)
+                            {
+                                <form asp-action="Delete" asp-route-id="@m.Id" method="post">
+                                    <input name="revision" type="hidden" value="@m.Revision" />
+                                    <button class="btn btn-sm btn-outline-danger" data-confirm="Remove this entry from menus? Child entries must be moved or deleted first.">Delete</button>
+                                </form>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+
+            @if (Model.Rows.Count == 0)
+            {
+                <tr>
+                    <td colspan="8" class="empty-state">No module paths found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<nav class="pager" aria-label="Module path pagination">
+    <span>Page @Model.Page of @Model.TotalPages · @Model.Total entries</span>
+    <div class="d-flex gap-2">
+        @if (Model.Page > 1)
+        {
+            <a asp-action="Index" asp-route-search="@Model.Search" asp-route-page="@(Model.Page - 1)" class="btn btn-outline-secondary">Previous</a>
+        }
+        @if (Model.Page < Model.TotalPages)
+        {
+            <a asp-action="Index" asp-route-search="@Model.Search" asp-route-page="@(Model.Page + 1)" class="btn btn-outline-secondary">Next</a>
+        }
+    </div>
+</nav>

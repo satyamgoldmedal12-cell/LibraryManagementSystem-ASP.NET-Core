@@ -1,0 +1,44 @@
+@{ ViewData["Title"] = "Page in role"; }
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">PAGE RIGHTS MANAGEMENT</p>
+        <h1>Page in role</h1>
+        <p class="text-secondary">Select the application to manage user-wise and role-wise page rights.</p>
+    </div>
+    <a asp-controller="ModulePaths" asp-action="Index" class="btn btn-outline-primary">Module path</a>
+</div>
+
+<div class="surface table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Application name</th>
+                <th>Mode</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>LibraryManagement</strong>
+                    <div class="small text-secondary">Library administration and lending</div>
+                </td>
+                <td>User-wise rights</td>
+                <td>
+                    <a asp-action="Edit" asp-route-kind="user" class="btn btn-primary">Update</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>LibraryManagement</strong>
+                    <div class="small text-secondary">Library administration and lending</div>
+                </td>
+                <td>Role-wise rights</td>
+                <td>
+                    <a asp-action="Edit" asp-route-kind="role" class="btn btn-primary">Update</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

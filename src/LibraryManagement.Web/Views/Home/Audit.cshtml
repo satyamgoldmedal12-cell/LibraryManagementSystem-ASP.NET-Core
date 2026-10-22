@@ -1,0 +1,36 @@
+@model IReadOnlyList<AuditEvent>
+@{ ViewData["Title"] = "Activity history"; }
+<p class="eyebrow">ADMINISTRATION</p>
+<h1>Activity history</h1>
+<p class="text-secondary mb-4">The latest 100 collection and circulation changes. Account security events are recorded in server logs.</p>
+
+<div class="surface table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>When (UTC)</th>
+                <th>Who</th>
+                <th>Action</th>
+                <th>Record ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.OccurredAt.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@item.ActorName</td>
+                    <td>@item.Action</td>
+                    <td>@item.EntityId</td>
+                </tr>
+            }
+
+            @if (Model.Count == 0)
+            {
+                <tr>
+                    <td colspan="4" class="empty-state">Activity will appear here after your first change.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,26 @@
+@model IReadOnlyList<Category>
+@{ ViewData["Title"] = "Categories"; }
+<p class="eyebrow">ORGANIZE THE SHELVES</p>
+<h1>Categories</h1>
+<p class="text-secondary mb-4">Make the collection easier to explore.</p>
+
+<form method="post" asp-action="Create" class="surface form-surface">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <label for="Name" class="form-label">New category</label>
+    <div class="input-group">
+        <input name="Name" id="Name" class="form-control" required maxlength="80" />
+        <button class="btn btn-primary">Add category</button>
+    </div>
+</form>
+
+<div class="row g-3 mt-3">
+    @foreach (var category in Model)
+    {
+        <div class="col-md-4">
+            <div class="surface p-4">
+                <span class="text-secondary small">@category.Id.ToString("D2")</span>
+                <h2 class="h5 mt-2 mb-0">@category.Name</h2>
+            </div>
+        </div>
+    }
+</div>

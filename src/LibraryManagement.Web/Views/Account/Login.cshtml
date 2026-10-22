@@ -1,0 +1,56 @@
+@model LoginModel
+
+@inject Microsoft.Extensions.Options.IOptions<AuthenticationSessionOptions> SessionSettings
+
+@{
+    var heading = Model.Portal is null ? "Good stories start here." : Model.Portal + " sign in";
+    ViewData["Title"] = Model.Portal is null ? "Sign in" : Model.Portal + " sign in";
+}
+<div class="login-panel">
+    <p class="eyebrow">WELCOME TO YOUR LIBRARY</p>
+    <h1>@heading</h1>
+    <p class="text-secondary mb-4">Sign in to continue to Library Desk.</p>
+    <div class="mb-4">
+        <label for="login-portal" class="form-label">Login portal</label>
+        <select id="login-portal" class="form-select" data-login-portal>
+            <option value="" disabled selected="@(Model.Portal is null ? "selected" : null)">Select your login portal</option>
+            <option value="@Url.Action("AdminLogin", new { returnUrl = Model.ReturnUrl })" selected="@(Model.Portal == Roles.Admin ? "selected" : null)">Admin</option>
+            <option value="@Url.Action("LibrarianLogin", new { returnUrl = Model.ReturnUrl })" selected="@(Model.Portal == Roles.Librarian ? "selected" : null)">Librarian</option>
+            <option value="@Url.Action("MemberLogin", new { returnUrl = Model.ReturnUrl })" selected="@(Model.Portal == Roles.Member ? "selected" : null)">Member</option>
+        </select>
+    </div>
+
+    <form method="post" asp-action="Login" class="surface form-surface">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+        <input asp-for="ReturnUrl" type="hidden" />
+        <input asp-for="Portal" type="hidden" />
+
+        <div class="mb-4">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 gap-3">
+            <label class="form-check mb-0">
+                <input asp-for="RememberMe" class="form-check-input" /> Remember me
+            </label>
+            <a asp-action="ForgotPassword" class="small">Forgot password?</a>
+        </div>
+
+        <button class="btn btn-primary w-100">Sign in →</button>
+        <p class="form-text mt-3 mb-0">New to the library? <a asp-action="Register">Create an account</a></p>
+        <p class="form-text mt-2 mb-0">Sessions end after @SessionSettings.Value.IdleMinutes minutes of inactivity and a maximum of @SessionSettings.Value.AbsoluteHours hours. Remember me keeps the cookie when you close the browser.</p>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

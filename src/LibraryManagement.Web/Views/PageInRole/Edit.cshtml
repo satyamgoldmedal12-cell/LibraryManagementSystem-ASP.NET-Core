@@ -1,0 +1,57 @@
+@model PageInRoleViewModel
+@{
+    ViewData["Title"] = "Edit page rights";
+    var isUser = Model.Kind == "user";
+    var role = isUser ? Model.Access?.Role : Model.RoleAccess?.Role;
+    var admin = role == Roles.Admin;
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">PAGE RIGHTS MANAGEMENT</p>
+        <h1>Edit page rights</h1>
+        <p class="text-secondary">Choose a user or role, then assign the operations available on each page.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to applications</a>
+</div>
+<form asp-action="Edit" method="get" class="surface p-3 mb-4" id="page-rights-selector" data-targets-url="@Url.Action("Targets")">
+<div class="row g-3 align-items-end"><div class="col-md-3"><label class="form-label" for="rights-application">Application</label><input id="rights-application" value="LibraryManagement" class="form-control" readonly/></div>
+<div class="col-md-3"><label class="form-label" for="rights-kind">Type</label><select name="kind" id="rights-kind" class="form-select"><option value="user" selected="@isUser">User wise</option><option value="role" selected="@(!isUser)">Role wise</option></select></div>
+<div class="col-md-3" data-user-field><label class="form-label" for="rights-category">User category</label><select name="category" id="rights-category" class="form-select"><option value="all" selected="@(Model.Category=="all")">All users</option><option value="staff" selected="@(Model.Category=="staff")">Staff</option><option value="member" selected="@(Model.Category=="member")">Members</option></select></div>
+<div class="col-md-3" data-user-field><label class="form-label" for="rights-search">Search user</label><input id="rights-search" type="search" class="form-control" placeholder="Type at least 2 letters" maxlength="200" autocomplete="off"/></div>
+<div class="col-md-9" data-user-field><label class="form-label" for="rights-user">Select user</label><select id="rights-user" name="target" class="form-select" disabled="@(!isUser)"><option value="">Select a user</option>@if(Model.Access is not null){<option value="@Model.Access.UserId" selected>@Model.Access.FullName — @Model.Access.Email (@Model.Access.Role)</option>}</select><small class="text-secondary" id="rights-search-status" aria-live="polite">Search by name or email to load matching users.</small></div>
+<div class="col-md-9" data-role-field><label class="form-label" for="rights-role">Select role</label><select id="rights-role" name="target" class="form-select" disabled="@isUser"><option value="">Select a role</option>@foreach(var r in new[]{Roles.Librarian,Roles.Member,Roles.Admin}){<option value="@r" selected="@(!isUser&&Model.Target==r)">@r</option>}</select></div><div class="col-md-3"><button class="btn btn-dark w-100">Load page rights</button></div></div></form>
+@if (Model.Access is not null || Model.RoleAccess is not null)
+{
+    <div class="alert alert-info" data-loaded-rights>
+        @if (admin)
+        {
+            <span>Administrators retain access administration. Their rights cannot be restricted here.</span>
+        }
+        else if (!isUser)
+        {
+            <span>Role-wise defaults apply to current and future users without a custom matrix. Existing user-wise overrides remain in place.</span>
+        }
+        else
+        {
+            <span>@Model.Access!.FullName · @role · @(Model.Access.Revision == 0 ? "Inherits role defaults" : "Custom user-wise rights")</span>
+        }
+    </div>
+
+    <form asp-action="@(isUser?"SaveUser":"SaveRole")" asp-route-target="@Model.Target" method="post" data-loaded-rights>
+    @if(isUser){<input asp-for="Access!.UserId" type="hidden"/><input asp-for="Access!.UserRevision" type="hidden"/><input asp-for="Access!.Revision" type="hidden"/>}else{<input asp-for="RoleAccess!.Role" type="hidden"/><input asp-for="RoleAccess!.Revision" type="hidden"/>}
+    <partial name="_RightsMatrix" model="@(new RightsMatrixViewModel(isUser?Model.Access!.Grants:Model.RoleAccess!.Grants,Model.Modules,isUser?"Access.Grants":"RoleAccess.Grants",role!,admin))"/>
+    @if(!admin){<button class="btn btn-primary mt-3">@(isUser?"Update user-wise rights":"Update role-wise rights")</button>}
+    <p class="text-secondary small mt-3">Read is required before other operations. Disabled cells are outside the page capabilities or role. Groups are containers. Import/approval flags do not create workflows.</p></form>
+}
+else
+{
+    <div class="surface p-5 text-center">
+        <h2 class="h5">Select a user or role</h2>
+        <p class="text-secondary mb-0">Their page tree and operation rights will appear here.</p>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/page-rights.js" asp-append-version="true"></script>
+}

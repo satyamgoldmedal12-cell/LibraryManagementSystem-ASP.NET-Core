@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>LibraryManagement-2026-local</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../LibraryManagement.Application/LibraryManagement.Application.csproj" />
+    <!-- Infrastructure is used only by Program.cs, the composition root. -->
+    <ProjectReference Include="../LibraryManagement.Infrastructure/LibraryManagement.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="App_Data/**;logs/**" />
+    <Content Remove="App_Data/**;logs/**" />
+    <None Remove="App_Data/**;logs/**" />
+  </ItemGroup>
+</Project>

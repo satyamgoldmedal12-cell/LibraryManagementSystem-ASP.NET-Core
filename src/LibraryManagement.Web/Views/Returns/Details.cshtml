@@ -1,0 +1,10 @@
+@model CirculationRecord
+@{ViewData["Title"]="Return receipt";}
+<div class="page-heading"><div><p class="eyebrow">RETURN · ISSUE #@Model.Id</p><h1>Return receipt</h1><p class="text-secondary">Return date, late days and the finalized fine are retained in history.</p></div><a asp-action="Index" class="btn btn-outline-secondary">Return history</a></div>
+<div class="surface p-4"><partial name="_CirculationFacts" model="Model"/>
+    <div class="form-actions">
+        @if(Model.FineAmount>0 && !Model.PaymentId.HasValue){<a asp-controller="Fines" asp-action="Pay" asp-route-id="@Model.Id" class="btn btn-primary">Record fine payment</a>}
+        @if(Model.PaymentId.HasValue){<a asp-controller="Fines" asp-action="Receipt" asp-route-id="@Model.Id" class="btn btn-primary">Payment receipt</a>}
+        <a asp-controller="Loans" asp-action="Index" class="btn btn-outline-secondary">Back to circulation</a>
+    </div>
+</div>

@@ -1,0 +1,9 @@
+@model ErrorViewModel
+@{ ViewData["Title"] = "Something went wrong"; }
+<div class="empty-state">
+    <p class="eyebrow">PLEASE TRY AGAIN</p>
+    <h1>We couldn't complete that request.</h1>
+    <p>No technical details are shown here. Contact your administrator with the reference below.</p>
+    <p class="text-secondary">Reference: @Model.RequestId</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back to library</a>
+</div>

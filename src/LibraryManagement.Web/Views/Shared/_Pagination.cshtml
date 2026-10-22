@@ -1,0 +1,15 @@
+@model IPagedResult
+<nav class="pager" aria-label="Pagination">
+    <span class="text-secondary">Page @Model.Page of @Model.TotalPages</span>
+    <div class="d-flex gap-2">
+        @if (Model.Page > 1)
+        {
+            <a class="btn btn-outline-secondary" asp-action="Index" asp-route-page="@(Model.Page - 1)" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-includeArchived="@Model.IncludeArchived">← Previous</a>
+        }
+
+        @if (Model.Page < Model.TotalPages)
+        {
+            <a class="btn btn-outline-secondary" asp-action="Index" asp-route-page="@(Model.Page + 1)" asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-includeArchived="@Model.IncludeArchived">Next →</a>
+        }
+    </div>
+</nav>

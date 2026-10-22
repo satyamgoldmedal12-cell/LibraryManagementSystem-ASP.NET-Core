@@ -1,0 +1,103 @@
+@model PagedResult<Loan>
+
+@{
+    var staff = User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Librarian);
+    ViewData["Title"] = staff ? "Circulation" : "My borrowing";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">EVERY BOOK HAS A JOURNEY</p>
+        <h1>@ViewData["Title"]</h1>
+        <p class="text-secondary">Track checkouts, returns, overdue books, and fines.</p>
+    </div>
+
+    @if (staff)
+    {
+        <div class="d-flex gap-2 flex-wrap"><a asp-action="History" class="btn btn-outline-secondary">Issue history</a><a asp-action="Issue" class="btn btn-primary">+ Issue a book</a></div>
+    }
+</div>
+
+<form method="get" class="filter-bar">
+    <label for="search" class="visually-hidden">Search loans</label>
+    <input id="search" name="search" class="form-control" value="@Model.Search" placeholder="Search book or member" maxlength="200" />
+
+    <label for="status" class="visually-hidden">Loan status</label>
+    <select id="status" name="status" class="form-select filter-select">
+        @foreach (var status in new[] { "active", "overdue", "returned", "unpaid", "all" })
+        {
+            <option value="@status" selected="@(Model.Status == status ? "selected" : null)">
+                @System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(status)
+            </option>
+        }
+    </select>
+
+    <button class="btn btn-dark">Filter</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+</form>
+
+<p class="result-count">@Model.Total loans · Fines are calculated in INR using UTC calendar dates.</p>
+
+<div class="surface table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Book / member</th>
+                <th>Issued</th>
+                <th>Due</th>
+                <th>Status</th>
+                <th>Fine (₹)</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var loan in Model.Items)
+            {
+                <tr>
+                    <td>
+                        <a asp-action="Receipt" asp-route-id="@loan.Id"><strong>@loan.Title</strong></a>
+                        <div class="small text-secondary">@loan.MemberNumber · @loan.MemberName · Loan #@loan.Id</div>
+                    </td>
+                    <td>@loan.IssuedAt.ToString("dd MMM yyyy")</td>
+                    <td>@loan.DueDate.ToString("dd MMM yyyy")</td>
+                    <td>
+                        <span class="status-pill @(loan.IsOverdue ? "status-warning" : "status-good")">
+                            @(loan.ReturnedAt.HasValue ? "Returned" : loan.IsOverdue ? "Overdue" : "On loan")
+                        </span>
+                        @if (loan.ReturnedAt.HasValue)
+                        {
+                            <div class="small text-secondary mt-1">@loan.ReturnedAt.Value.ToString("dd MMM yyyy")</div>
+                        }
+                    </td>
+                    <td>
+                        @loan.FineAmount.ToString("N2")
+                        <div class="small text-secondary">@(loan.IsPaid ? "Paid" : loan.ReturnedAt is null ? "Accruing" : loan.FineAmount > 0 ? "Unpaid" : "No fine")</div>
+                    </td>
+                    <td>
+                        @if (staff && loan.ReturnedAt is null)
+                        {
+                            <a asp-controller="Returns" asp-action="Confirm" asp-route-id="@loan.Id" class="btn btn-sm btn-outline-primary">Return</a>
+                        }
+                        else if (staff && loan.FineAmount > 0 && !loan.IsPaid)
+                        {
+                            <a asp-controller="Fines" asp-action="Pay" asp-route-id="@loan.Id" class="btn btn-sm btn-outline-primary">Record payment</a>
+                        }
+                        else
+                        {
+                            <span class="text-secondary">—</span>
+                        }
+                    </td>
+                </tr>
+            }
+
+            @if (Model.Items.Count == 0)
+            {
+                <tr>
+                    <td colspan="6" class="empty-state">No loans match this view.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<partial name="_Pagination" model="Model" />

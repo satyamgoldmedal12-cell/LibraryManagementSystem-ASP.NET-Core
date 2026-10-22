@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+*.csproj.user
+logs/
+TestResults/
+*.bak
+appsettings.Local.json
+.env
+artifacts/
+
+App_Data/

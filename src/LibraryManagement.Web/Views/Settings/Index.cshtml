@@ -1,0 +1,36 @@
+@model LibrarySettings
+@{ ViewData["Title"] = "Library settings"; }
+<div class="page-heading">
+    <div><p class="eyebrow">ADMINISTRATION</p><h1>Library settings</h1><p class="text-secondary">Manage your library information and borrowing rules.</p></div>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Dashboard</a>
+</div>
+<form method="post" class="settings-form">
+    <div asp-validation-summary="All" class="alert alert-danger validation-summary" role="alert"></div>
+    <input asp-for="Revision" type="hidden" />
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <section class="surface p-4 h-100" aria-labelledby="library-information">
+                <p class="eyebrow">YOUR LIBRARY</p><h2 id="library-information" class="h4 mb-4">Library information</h2>
+                <div class="mb-3"><label asp-for="LibraryName" class="form-label"></label><input asp-for="LibraryName" class="form-control" maxlength="120" required /><span asp-validation-for="LibraryName" class="text-danger"></span><div class="form-text">Shown in the sidebar across the application.</div></div>
+                <div class="mb-3"><label asp-for="Address" class="form-label"></label><textarea asp-for="Address" class="form-control" rows="4" maxlength="500"></textarea><span asp-validation-for="Address" class="text-danger"></span></div>
+                <div class="mb-3"><label asp-for="Email" class="form-label">Contact email</label><input asp-for="Email" type="email" class="form-control" maxlength="256" /><span asp-validation-for="Email" class="text-danger"></span></div>
+                <div><label asp-for="Phone" class="form-label">Contact phone</label><input asp-for="Phone" type="tel" class="form-control" maxlength="30" /><span asp-validation-for="Phone" class="text-danger"></span></div>
+            </section>
+        </div>
+        <div class="col-lg-6">
+            <section class="surface p-4 h-100" aria-labelledby="borrowing-rules">
+                <p class="eyebrow">CIRCULATION POLICY</p><h2 id="borrowing-rules" class="h4 mb-4">Borrowing &amp; membership</h2>
+                <div class="mb-3"><label asp-for="MaxActiveLoans" class="form-label"></label><input asp-for="MaxActiveLoans" type="number" min="1" max="100" step="1" required class="form-control" /><span asp-validation-for="MaxActiveLoans" class="text-danger"></span><div class="form-text">1–100 active books. Lowering the limit keeps existing loans and prevents further issues until the member is below the limit.</div></div>
+                <div class="mb-3"><label asp-for="DefaultIssueDays" class="form-label"></label><input asp-for="DefaultIssueDays" type="number" min="1" max="90" step="1" required class="form-control" /><span asp-validation-for="DefaultIssueDays" class="text-danger"></span><div class="form-text">Suggested due date for a new issue, limited by membership expiry. Staff can select another valid due date within 90 days.</div></div>
+                <div class="mb-3"><label asp-for="DailyFine" class="form-label"></label><input asp-for="DailyFine" type="number" min="0" max="1000" step="0.01" required class="form-control" /><span asp-validation-for="DailyFine" class="text-danger"></span><div class="form-text">₹0–₹1,000 with up to two decimal places. New checkouts use this rate; existing loans keep their recorded rate. Use zero for no fine.</div></div>
+                <div><label asp-for="MembershipDurationMonths" class="form-label"></label><input asp-for="MembershipDurationMonths" type="number" min="1" max="120" step="1" required class="form-control" /><span asp-validation-for="MembershipDurationMonths" class="text-danger"></span><div class="form-text">1–120 calendar months. Applies to public registrations and the default expiry when staff add a member. Existing memberships keep their expiry dates.</div></div>
+            </section>
+        </div>
+    </div>
+    @if (Model.ModifiedAt.HasValue)
+    {
+        <p class="text-secondary small mt-3">Last saved @Model.ModifiedAt.Value.ToString("dd MMM yyyy, HH:mm:ss") UTC by @Model.ModifiedByName.</p>
+    }
+    <div class="form-actions mt-4"><button class="btn btn-primary" type="submit">Save settings</button><a asp-action="Index" class="btn btn-outline-secondary">Reload current settings</a></div>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

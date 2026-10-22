@@ -1,0 +1,14 @@
+@model CirculationRecord
+@{ViewData["Title"]="Return book";}
+<div class="page-heading"><div><p class="eyebrow">BOOK RETURN MANAGEMENT</p><h1>Return book</h1><p class="text-secondary">Review the loan and calculated fine before confirming the return.</p></div><a asp-action="Index" class="btn btn-outline-secondary">Return history</a></div>
+<div class="surface p-4">
+    <partial name="_CirculationFacts" model="Model"/>
+    <p class="form-text">Estimate as of @Model.AsOfUtc.ToString("dd MMM yyyy, HH:mm:ss") UTC. Late days = days after the due date; fine = late days × checkout rate. SQL Server records the actual return time and final fine when you confirm.</p>
+    <form method="post" asp-action="Confirm" asp-route-id="@Model.Id">
+        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+        <div class="form-actions">
+            @if(Model.ReturnedAt is null){<button class="btn btn-primary">Confirm return</button>}else{<a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-primary">View return receipt</a>}
+            <a asp-controller="Loans" asp-action="Index" class="btn btn-outline-secondary">Back to circulation</a>
+        </div>
+    </form>
+</div>

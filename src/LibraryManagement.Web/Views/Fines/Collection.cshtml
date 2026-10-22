@@ -1,0 +1,4 @@
+@model LibraryManagement.Web.ViewModels.CirculationLedgerViewModel
+@{ViewData["Title"]="Fine collection report";}
+<div class="page-heading"><div><p class="eyebrow">FINE MANAGEMENT · REPORT</p><h1>Fine collection report</h1><p class="text-secondary">Actual payments by payment date, member and book. Includes archived records.</p></div><div class="d-flex gap-2 flex-wrap"><a asp-controller="Reports" asp-action="Index" asp-route-report="collections" asp-route-fromDate="@Model.Filter.FromDate?.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.Filter.ToDate?.ToString("yyyy-MM-dd")" asp-route-memberId="@Model.Filter.MemberId" asp-route-bookId="@Model.Filter.BookId" class="btn btn-primary">Reports / Excel / PDF</a><a asp-action="Index" class="btn btn-outline-secondary">Fine ledger</a></div></div>
+<partial name="_CirculationLedger" model="Model"/>

@@ -1,0 +1,4 @@
+@model LibraryManagement.Web.ViewModels.CirculationLedgerViewModel
+@{ViewData["Title"]="Return history";}
+<div class="page-heading"><div><p class="eyebrow">BOOK RETURN MANAGEMENT</p><h1>Return history</h1><p class="text-secondary">Returned books, return dates, late days and finalized fines.</p></div><a asp-controller="Loans" asp-action="Index" asp-route-status="active" class="btn btn-primary">Find a book to return</a></div>
+<partial name="_CirculationLedger" model="Model"/>

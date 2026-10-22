@@ -1,0 +1,134 @@
+@model ModulePath
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Add module path" : "Edit module path";
+    var modules = (IReadOnlyList<ModulePath>)ViewBag.Modules;
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">PAGE RIGHTS MANAGEMENT</p>
+        <h1>@ViewData["Title"]</h1>
+        <p class="text-secondary">Create a parent group or register a page under a group.</p>
+    </div>
+</div>
+
+<nav class="nav nav-tabs mb-4" aria-label="Module path pages">
+    <a class="nav-link active" asp-action="Edit">@(Model.Id == 0 ? "Add" : "Edit")</a>
+    <a class="nav-link" asp-action="Index">List</a>
+</nav>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="surface p-4" id="module-path-editor">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="Revision" type="hidden" />
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label" for="application-name">Application name</label>
+            <input id="application-name" value="LibraryManagement" class="form-control" readonly />
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="ParentId" class="form-label">Parent page / group</label>
+            <select asp-for="ParentId" class="form-select" id="module-parent">
+                <option value="">Root level</option>
+                @foreach (var p in ModuleHierarchy.Ordered(modules).Where(m => !m.IsLeafNode && !m.DeletedDate.HasValue && m.Id != Model.Id && (!ModuleHierarchy.Ancestors(m, modules).Any(a => a.Id == Model.Id) || Model.Id == 0)))
+                {
+                    var full = ModuleHierarchy.FullPath(p, modules);
+                    <option value="@p.Id" data-full-path="@full">@full</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label" for="module-full-path">Full page path</label>
+            <input id="module-full-path" value="@(Model.Id == 0 ? Model.DisplayName : ModuleHierarchy.FullPath(Model, modules))" class="form-control" readonly />
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="DisplayName" class="form-label">Page name</label>
+            <input asp-for="DisplayName" class="form-control" maxlength="80" id="module-name" />
+            <span asp-validation-for="DisplayName" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-2">
+            <label asp-for="LabelId" class="form-label">Label ID</label>
+            <input asp-for="LabelId" class="form-control" min="1" max="50" />
+        </div>
+
+        <div class="col-md-2">
+            <label asp-for="SortOrder" class="form-label">Sequence ID</label>
+            <input asp-for="SortOrder" class="form-control" min="0" max="9999" />
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <label class="form-check">
+                @if (Model.Id == 0)
+                {
+                    <input asp-for="IsLeafNode" class="form-check-input" id="module-leaf" />
+                }
+                else
+                {
+                    <input asp-for="IsLeafNode" type="hidden" id="module-leaf" />
+                    <span class="badge text-bg-secondary me-1">@(Model.IsLeafNode ? "Yes" : "No")</span>
+                }
+                Is leaf node
+            </label>
+        </div>
+
+        <div class="col-md-6" data-leaf-field>
+            <label asp-for="ControllerName" class="form-label">Controller name</label>
+            <input asp-for="ControllerName" list="controller-names" class="form-control" id="module-controller" maxlength="80" readonly="@(Model.Id > 0)" />
+            <datalist id="controller-names">
+                @foreach (var c in ModuleRules.Controllers)
+                {
+                    <option value="@c"></option>
+                }
+            </datalist>
+            <small class="text-secondary">Use Books or Members without the Controller suffix. Existing controllers keep their identity to protect assigned rights.</small>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label" for="module-route">Path</label>
+            <input id="module-route" value="@Model.PagePath" class="form-control" readonly />
+            <small class="text-secondary">Group paths use #. Page paths point to their MVC landing action.</small>
+        </div>
+
+        <div class="col-12">
+            <label class="form-check">
+                <input asp-for="IsActive" class="form-check-input" /> Active
+            </label>
+        </div>
+    </div>
+
+    <fieldset class="mt-4" data-leaf-field>
+        <legend class="h5">Operations existing on this page</legend>
+        <div class="d-flex flex-wrap gap-4">
+            <label class="form-check"><input asp-for="IsAdd" class="form-check-input" /> Add</label>
+            <label class="form-check"><input asp-for="IsEdit" class="form-check-input" /> Edit</label>
+            <label class="form-check"><input asp-for="IsRead" class="form-check-input" /> Read</label>
+            <label class="form-check"><input asp-for="IsDelete" class="form-check-input" /> Delete</label>
+            <label class="form-check"><input asp-for="IsImport" class="form-check-input" /> Import</label>
+            <label class="form-check"><input asp-for="IsExport" class="form-check-input" /> Export</label>
+            <label class="form-check"><input asp-for="IsApproval1" class="form-check-input" /> Approval 1</label>
+            <label class="form-check"><input asp-for="IsApproval2" class="form-check-input" /> Approval 2</label>
+        </div>
+    </fieldset>
+
+    <p class="text-secondary small mt-3">Groups organize the menu and have no operation flags. Pages require Read before other rights. Import and approval flags are available for implemented workflows.</p>
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary">@(Model.Id == 0 ? "Add" : "Update")</button>
+        <a asp-action="Edit" class="btn btn-outline-secondary">Clear</a>
+        @if (Model.Id > 0)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Reload saved version</a>
+        }
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/page-rights.js" asp-append-version="true"></script>
+}

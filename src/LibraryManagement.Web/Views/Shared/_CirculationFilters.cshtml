@@ -1,0 +1,17 @@
+@model LibraryManagement.Web.ViewModels.CirculationLedgerViewModel
+@{var f=Model.Filter;var dateLabel=Model.Kind=="collections"?"Payment date":Model.Kind=="returns"?"Return date":"Due date";}
+<form method="get" class="surface p-3 mb-4">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <div class="row g-3">
+        <div class="col-lg-4"><label for="Search" class="form-label">Search</label><input id="Search" name="Search" value="@f.Search" maxlength="200" class="form-control" placeholder="Book, ISBN, member name or ID"/></div>
+        <div class="col-sm-6 col-lg-2"><label for="FromDate" class="form-label">From date</label><input id="FromDate" name="FromDate" type="date" value="@f.FromDate?.ToString("yyyy-MM-dd")" class="form-control"/></div>
+        <div class="col-sm-6 col-lg-2"><label for="ToDate" class="form-label">To date</label><input id="ToDate" name="ToDate" type="date" value="@f.ToDate?.ToString("yyyy-MM-dd")" class="form-control"/></div>
+        @if(Model.Kind=="fines"){
+            <div class="col-lg-4"><label for="Status" class="form-label">Fine status</label><select id="Status" name="Status" class="form-select">@foreach(var s in new[]{"all","pending","accruing","paid"}){<option value="@s" selected="@(f.Status==s?"selected":null)">@System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(s)</option>}</select></div>
+        }
+        <div class="col-md-6 lookup" data-url="@Url.Action("Lookup","Books",new { includeArchived=true })"><label for="ledger-book" class="form-label">Book filter</label><input id="ledger-book" class="form-control lookup-input" value="@Model.BookLabel" placeholder="Search book or ISBN" autocomplete="off"/><input type="hidden" class="lookup-id" name="BookId" value="@f.BookId" data-optional="true"/><div class="lookup-results list-group" aria-live="polite"></div><p class="lookup-selection form-text">@(Model.BookLabel is null?"All books":"Selected: "+Model.BookLabel)</p></div>
+        <div class="col-md-6 lookup" data-url="@Url.Action("Lookup","Members",new { includeArchived=true })"><label for="ledger-member" class="form-label">Member filter</label><input id="ledger-member" class="form-control lookup-input" value="@Model.MemberLabel" placeholder="Search member name or ID" autocomplete="off"/><input type="hidden" class="lookup-id" name="MemberId" value="@f.MemberId" data-optional="true"/><div class="lookup-results list-group" aria-live="polite"></div><p class="lookup-selection form-text">@(Model.MemberLabel is null?"All members":"Selected: "+Model.MemberLabel)</p></div>
+    </div>
+    <p class="form-text">Date filters use @dateLabel.ToLowerInvariant() in UTC and include both selected dates. Historical filters include archived books and members.</p>
+    <button class="btn btn-dark">Apply filters</button><a asp-action="@ViewContext.RouteData.Values["action"]" class="btn btn-outline-secondary">Clear</a>
+</form>

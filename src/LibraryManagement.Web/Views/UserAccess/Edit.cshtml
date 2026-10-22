@@ -1,0 +1,24 @@
+@model UserModuleAccessEditViewModel
+@{ViewData["Title"]="Assign user rights";var admin=Model.Access.Role==Roles.Admin;var rights=new[]{ModuleRight.Read,ModuleRight.Add,ModuleRight.Edit,ModuleRight.Delete,ModuleRight.Export,ModuleRight.Import,ModuleRight.Approval1,ModuleRight.Approval2};var labels=new[]{"Read","Add","Edit","Delete","Export","Import","Approval 1","Approval 2"};}
+<div class="page-heading"><div><p class="eyebrow">ACCESS ADMINISTRATION</p><h1>@Model.Access.FullName</h1><p class="text-secondary">@Model.Access.Email · @Model.Access.Role · @(Model.Access.IsActive?"Active account":"Inactive account")</p></div><a asp-action="Index" class="btn btn-outline-secondary">Back to users</a></div>
+@if(admin){<div class="alert alert-info">Administrators retain full access to active modules and always retain access administration. Their rights cannot be restricted here.</div>}
+else{<div class="alert alert-info">@(Model.Access.Revision==0?"This user currently has role-default access. Saving creates a custom permission matrix.":"This user has custom rights. New modules require explicit assignment.") Read is required before other operations. Disabled boxes are outside the module's capabilities or user's role.</div>}
+<form asp-action="Edit" asp-route-id="@Model.Access.UserId" method="post">
+<div asp-validation-summary="All" class="text-danger" role="alert"></div><input asp-for="Access.UserId" type="hidden"/><input asp-for="Access.UserRevision" type="hidden"/><input asp-for="Access.Revision" type="hidden"/>
+<div class="surface table-responsive"><table class="table align-middle"><thead><tr><th>Module / controller</th>@foreach(var label in labels){<th class="text-center">@label</th>}</tr></thead><tbody>
+@for(var i=0;i<Model.Access.Grants.Count;i++)
+{
+    var grant=Model.Access.Grants[i];var module=Model.Modules.Single(m=>m.Id==grant.ModuleId);var limit=module.IsActive&&!module.DeletedDate.HasValue?module.Rights & ModuleRules.RoleLimit(module.ControllerName,Model.Access.Role):ModuleRight.None;
+    <tr><td><strong>@module.DisplayName</strong><div class="small text-secondary">@module.ControllerName @(!module.IsActive||module.DeletedDate.HasValue?" · unavailable":"")</div><input asp-for="Access.Grants[i].ModuleId" type="hidden"/><input asp-for="Access.Grants[i].ModuleRevision" type="hidden"/></td>
+    @for(var j=0;j<rights.Length;j++)
+    {
+        var property="Is"+rights[j];var name=$"Access.Grants[{i}].{property}";var enabled=!admin&&limit.HasFlag(rights[j]);var selected=admin?limit.HasFlag(rights[j]):grant.Rights.HasFlag(rights[j])&&enabled;
+        <td class="text-center"><input type="checkbox" name="@name" value="true" checked="@selected" disabled="@(!enabled)" class="form-check-input" aria-label="@($"{module.DisplayName}: {labels[j]}")"/><input type="hidden" name="@name" value="false"/></td>
+    }
+    </tr>
+}
+</tbody></table></div>
+<p class="small text-secondary mt-3">Read-only users can view pages. Issue requires Circulation Add; returns require Returns Edit; fine payments require Fines Add; report downloads require Reports Export. Assign Books Read and Members Read when staff need their lookup selectors. Import/approval flags reserve rights for implemented workflows.</p>
+@if(!admin){<button class="btn btn-primary">Save user rights</button>}
+<a asp-action="Edit" asp-route-id="@Model.Access.UserId" class="btn btn-outline-secondary">Reload saved rights</a>
+</form>

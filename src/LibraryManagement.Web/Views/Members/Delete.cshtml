@@ -1,0 +1,36 @@
+@model MemberProfile
+@{
+    var member = Model.Member;
+    ViewData["Title"] = "Delete member";
+}
+
+<p class="eyebrow">MEMBERSHIP MANAGEMENT</p>
+<h1>Delete member</h1>
+
+<div class="surface form-surface">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <h2 class="h4 member-name">@member.FullName</h2>
+    <p>@member.MemberNumber · @member.Email</p>
+
+    @if (member.IsArchived)
+    {
+        <div class="alert alert-info">This member is already deleted. Restore the member from their profile.</div>
+    }
+    else
+    {
+        <p>Deleting removes this member from the normal list and blocks linked sign-in. Membership, borrowing, fine and payment history are preserved. Staff can restore the member later.</p>
+
+        @if (Model.Statistics.ActiveLoans > 0)
+        {
+            <div class="alert alert-warning">Return @Model.Statistics.ActiveLoans outstanding books before deleting this member.</div>
+        }
+
+        <form method="post" asp-action="Delete" asp-route-id="@member.Id">
+            <input name="revision" type="hidden" value="@member.Revision" />
+            <div class="form-actions">
+                <button class="btn btn-danger" disabled="@(Model.Statistics.ActiveLoans > 0)">Delete member</button>
+                <a asp-action="Profile" asp-route-id="@member.Id" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    }
+</div>

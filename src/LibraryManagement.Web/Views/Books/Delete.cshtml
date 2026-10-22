@@ -1,0 +1,33 @@
+@model Book
+@{ ViewData["Title"] = "Delete book"; }
+<p class="eyebrow">COLLECTION MANAGEMENT</p>
+<h1>Delete book</h1>
+
+<div class="surface form-surface">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <h2 class="h4 book-title">@Model.Title</h2>
+    <p class="text-secondary">@Model.Author · ISBN @Model.ISBN</p>
+
+    @if (Model.IsArchived)
+    {
+        <div class="alert alert-info">This title is already archived. Choose Manage / restore to bring it back.</div>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Manage / restore</a>
+    }
+    else
+    {
+        <p>Deleting removes this title from the active catalog. Loan history, fines and its cover stay available to staff. To restore it later, search with <strong>Include archived</strong> and change Book status to Active catalog.</p>
+
+        @if (Model.AvailableCopies < Model.TotalCopies)
+        {
+            <div class="alert alert-warning">@(Model.TotalCopies - Model.AvailableCopies) copies are on loan. Return all outstanding copies before deleting this book.</div>
+        }
+
+        <form method="post" asp-action="Delete" asp-route-id="@Model.Id">
+            <input type="hidden" name="revision" value="@Model.Revision" />
+            <div class="form-actions">
+                <button class="btn btn-danger" disabled="@(Model.AvailableCopies < Model.TotalCopies)">Delete book</button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    }
+</div>

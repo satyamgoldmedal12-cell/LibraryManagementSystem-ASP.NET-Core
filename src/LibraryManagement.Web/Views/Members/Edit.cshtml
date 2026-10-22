@@ -1,0 +1,92 @@
+@model Member
+@{ ViewData["Title"] = Model.Id == 0 ? "Add member" : "Manage member"; }
+
+<p class="eyebrow">MEMBERSHIP</p>
+<h1>@ViewData["Title"]</h1>
+<p class="text-secondary mb-4">Contact details, membership dates and access to borrowing.</p>
+
+@if (Model.IsArchived)
+{
+    <div class="alert alert-warning">This member is deleted. Restore the profile before editing.</div>
+    <a class="btn btn-primary" asp-action="Profile" asp-route-id="@Model.Id">View profile / restore</a>
+}
+else
+{
+    <form method="post" asp-action="Edit" asp-route-id="@Model.Id" class="surface form-surface">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="Revision" type="hidden" />
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <label asp-for="FullName" class="form-label">Full name</label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="MemberNumber" class="form-label">Member ID</label>
+                <input asp-for="MemberNumber" class="form-control" />
+                <div class="form-text">Unique library identifier. A new ID is suggested automatically.</div>
+                <span asp-validation-for="MemberNumber" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Phone" class="form-label">Mobile number</label>
+                <input asp-for="Phone" type="tel" class="form-control" />
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Address" class="form-label">Address</label>
+                <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="JoinedOn" class="form-label">Membership date</label>
+                <input asp-for="JoinedOn" required="@(Model.Id == 0)" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                <span asp-validation-for="JoinedOn" class="text-danger"></span>
+                @if (Model.Id > 0 && Model.JoinedOn is null)
+                {
+                    <div class="form-text">The original date was not recorded. Enter it if available from your membership records, or leave it unrecorded.</div>
+                }
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="ExpiresOn" class="form-label">Membership expiry date</label>
+                <input asp-for="ExpiresOn" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                <span asp-validation-for="ExpiresOn" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="IsActive" class="form-label">Member status</label>
+                <select asp-for="IsActive" class="form-select">
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+                <div class="form-text">Expired or inactive memberships cannot borrow new books. Expiry is calculated from UTC calendar dates.</div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-primary">Save member</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            @if (Model.Id > 0)
+            {
+                <a asp-action="Profile" asp-route-id="@Model.Id" class="btn btn-outline-secondary">View profile</a>
+            }
+        </div>
+    </form>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

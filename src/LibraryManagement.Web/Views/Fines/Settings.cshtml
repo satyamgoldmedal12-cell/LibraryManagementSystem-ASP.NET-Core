@@ -1,0 +1,15 @@
+@model FinePolicy
+@{ViewData["Title"]="Fine settings";}
+<div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>Fine settings</h1><p class="text-secondary">Configure the daily overdue fine for new book issues.</p></div><a asp-action="Index" class="btn btn-outline-secondary">Fine ledger</a></div>
+<p class="text-secondary">This rate is shared with <a asp-controller="Settings" asp-action="Index">Library settings</a>.</p>
+<form method="post" class="surface form-surface">
+<div asp-validation-summary="All" class="text-danger" role="alert"></div>
+<input asp-for="Revision" type="hidden"/>
+<label asp-for="DailyFine" class="form-label">Fine per day (₹)</label>
+<input asp-for="DailyFine" type="number" min="0" max="1000" step="0.01" required class="form-control"/>
+<span asp-validation-for="DailyFine" class="text-danger"></span>
+<p class="form-text">₹0–₹1,000, with up to two decimal places. Existing loans keep their checkout rate. A zero rate disables fines on future issues.</p>
+@if(Model.ModifiedAt.HasValue){<p class="text-secondary small">Last saved @Model.ModifiedAt.Value.ToString("dd MMM yyyy, HH:mm:ss") UTC by @Model.ModifiedByName.</p>}
+<div class="form-actions"><button class="btn btn-primary">Save fine rate</button><a asp-action="Index" class="btn btn-outline-secondary">Cancel</a><a asp-action="Settings" class="btn btn-outline-secondary">Reload current settings</a></div>
+</form>
+@section Scripts{<partial name="_ValidationScriptsPartial"/>}
